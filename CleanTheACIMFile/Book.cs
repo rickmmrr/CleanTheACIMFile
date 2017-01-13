@@ -13,7 +13,13 @@ namespace CleanTheACIMFile {
       public List<MajorBookSection> bkMajorBookSection { get { return _bkMajorBookSection; } }
       public string Title_Book { get; set; }
       public Book() { _bkMajorBookSection = new List<MajorBookSection>(); Title_Book = string.Empty; }
-      public void AddMajorBookSection( MajorBookSection section ) { _bkMajorBookSection.Add(section); }
+      public void AddMajorBookSection( string title ) {
+
+         MajorBookSection m = new MajorBookSection();
+         m.Title_MajorBookSection = title;
+         _bkMajorBookSection.Add(m);
+      }
+      public MajorBookSection ReturnCurrentMajorBookSection { get {return _bkMajorBookSection[_bkMajorBookSection.Count - 1]; } }
    }
 
    /// <summary>
@@ -24,7 +30,8 @@ namespace CleanTheACIMFile {
       public List<BkChapter> bkChapter { get { return _bkChapter; } }
       public string Title_MajorBookSection { get; set; }
       public MajorBookSection() { _bkChapter = new List<BkChapter>(); Title_MajorBookSection = string.Empty; }
-      public void AddChapter(BkChapter chapter ) { _bkChapter.Add(chapter); }
+      public void AddChapter(string chapterName ) {
+         _bkChapter.Add(chapter); }
    }
 
    public class BkChapter {

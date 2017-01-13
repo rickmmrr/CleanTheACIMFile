@@ -15,7 +15,7 @@ namespace CleanTheACIMFile {
       Regex _startParaChecker;
 
 
-      enum LineInfo { Page_Number,Chapter_Number,Chater_Name,Chapter_section_Name,
+      enum LineInfo { Page_Number,Chapter_Number,Chapter_Name,Chapter_section_Name,
       First_Line_in_paragraph, Continues_Line, Major_Section_Name,Not_Sure}
 
       public ReadInTextFile(string fullPath ) {
@@ -37,6 +37,7 @@ namespace CleanTheACIMFile {
 
 
 
+            Book book = new Book();
 
 
 
@@ -45,11 +46,29 @@ namespace CleanTheACIMFile {
 
             //read in the file
             _file = System.IO.File.ReadAllLines(fullPath);
+            int index = 0;
 
+            //first name in the file is the name of the book
+            //and first major section name
+            book.Title_Book = _file[index];
+            book.AddMajorBookSection(_file[index++] + " Text");
+
+
+
+            MajorBookSection currentMajorBookSection = book.bkMajorBookSection[book.bkMajorBookSection.Count - 1];
             object data = null;
-            for(int index = 0; index < _file.Length; index++) {
+            LineInfo next = LineInfo.Not_Sure;
 
-               LineInfo lInfo = WhatLineIsThis(_file[index], index, out data);
+            for(;;) {
+
+               LineInfo lineInfo = WhatLineIsThis(_file[index], index, out next, out data);
+
+               if(lineInfo == LineInfo.Chapter_Name) {
+
+                  // add a new chapter
+                  
+               }
+
 
 
 
@@ -89,7 +108,7 @@ namespace CleanTheACIMFile {
             Regex pullNumber = new Regex(@"\d+");
             Match m = pullNumber.Match(line);
             data = Convert.ToInt32(m.Value);
-            next = LineInfo.Chater_Name;
+            next = LineInfo.Chapter_section_Name;
             return LineInfo.Chapter_Number;
          }
 
