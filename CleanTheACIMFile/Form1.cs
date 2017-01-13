@@ -11,15 +11,21 @@ namespace CleanTheACIMFile
 {
     public partial class Form1 : Form
     {
-        
 
+      string _rootPath;
 
         public Form1()
         {
             InitializeComponent();
-        }
 
-        private void button1_Click(object sender, EventArgs e)
+         var appSettings = ConfigurationManager.AppSettings;
+         _rootPath = appSettings["TextPath"] ?? "Not Found";
+         if(_rootPath == "Not Found")
+            throw new Exception("Root text path is not set");
+
+      }
+
+      private void button1_Click(object sender, EventArgs e)
         {
             try
             {
@@ -29,18 +35,13 @@ namespace CleanTheACIMFile
 
                 string[] rawACIMFile = null;
 
-                var appSettings = ConfigurationManager.AppSettings;
-                string rootPath = appSettings["TextPath"] ?? "Not Found";
-                if (rootPath == "Not Found")
-                    throw new Exception("Root text path is not set");
-
 
 
                 try
                 {
 
 
-                    rawACIMFile = File.ReadAllLines(rootPath + "acim-3.txt");
+                    rawACIMFile = File.ReadAllLines(_rootPath + "acim-3.txt");
                 }
                 catch (Exception ex)
                 {
@@ -66,7 +67,7 @@ namespace CleanTheACIMFile
 
 
                     //save the file
-                    File.WriteAllLines(rootPath + "dubFile.txt", retList.ToArray());
+                    File.WriteAllLines(_rootPath + "dubFile.txt", retList.ToArray());
 
 
                     StringBuilder sb = new StringBuilder();
@@ -77,7 +78,7 @@ namespace CleanTheACIMFile
                     }
 
 
-                    File.WriteAllLines(rootPath + "rawDataStepOne.txt", new string[] { sb.ToString() });
+                    File.WriteAllLines(_rootPath + "rawDataStepOne.txt", new string[] { sb.ToString() });
 
                 }
                 catch (Exception exe)
@@ -87,11 +88,12 @@ namespace CleanTheACIMFile
 
 
 
+            string[] check = ExamineACIMFile.SaveAndRemovePageNums(_rootPath + "rawDataStepOne.txt");
+
+            File.WriteAllLines(_rootPath + "Line-Headers.txt", check);
 
 
-
-
-                MessageBox.Show("Done!");
+            MessageBox.Show("Done!");
 
 
 
@@ -105,5 +107,12 @@ namespace CleanTheACIMFile
 
 
         }
-    }
+
+      private void button2_Click( object sender, EventArgs e ) {
+
+
+
+         ReadInTextFile t = new ReadInTextFile(_rootPath + "rawDataStepOne.txt");
+      }
+   }
 }

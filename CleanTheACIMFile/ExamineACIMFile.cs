@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace CleanTheACIMFile
@@ -35,12 +36,16 @@ namespace CleanTheACIMFile
         //hold entire ACIM File
         string[] _rawFile = null;
 
-        public ExamineACIMFile(string[] rawFile)
-        {
-            _rawFile = rawFile;
-        }
+      public ExamineACIMFile(string[] rawFile)
+      {
+         _rawFile = rawFile;
+      }
+      public ExamineACIMFile()
+      {
+        
+      }
 
-        public DuplicateLineItem[] DetermineDuplicateLines(out List<RawDataContainer> managedFile)
+      public DuplicateLineItem[] DetermineDuplicateLines(out List<RawDataContainer> managedFile)
         {
             managedFile = new List<RawDataContainer>();
             //add the entire file to managedFile
@@ -119,5 +124,44 @@ namespace CleanTheACIMFile
             return dubList.ToArray();
             //***********************************************************************
         }
-    }
+      public static string[] SaveAndRemovePageNums(string fileName)
+      {
+
+         string[] retArray = null;
+         try {
+
+            string[] file = System.IO.File.ReadAllLines(fileName);
+
+            //page
+            //Regex PageChecker = new Regex(@"^Page.\d+.of.\d+$");
+
+            //chapter
+            // Regex PageChecker = new Regex(@"^Chapter\s+\d+\.$");
+
+            //lessons
+            // Regex PageChecker = new Regex(@"^LESSON\s+\d+\.$");
+            
+            Regex PageChecker = new Regex(@"^[A-Z]-");
+
+            var lessons = new List<string>();
+
+            foreach(string line in file) {
+               if (PageChecker.IsMatch(line))
+                  lessons.Add(line);
+
+              
+            }
+
+            retArray = lessons.ToArray();
+
+            
+         }
+         catch (Exception ex) {
+            System.Diagnostics.Debug.WriteLine(ex.Message);
+         }
+
+         return retArray;
+
+      }
+   }
 }
