@@ -13,13 +13,30 @@ namespace CleanTheACIMFile {
       public List<MajorBookSection> bkMajorBookSection { get { return _bkMajorBookSection; } }
       public string Title_Book { get; set; }
       public Book() { _bkMajorBookSection = new List<MajorBookSection>(); Title_Book = string.Empty; }
+      // ***********************************************************************************************
+      //************* This section encapsolates all functions from within the book class
+
       public void AddMajorBookSection( string title ) {
 
-         MajorBookSection m = new MajorBookSection();
-         m.Title_MajorBookSection = title;
+         MajorBookSection m = new MajorBookSection(title);
          _bkMajorBookSection.Add(m);
       }
-      public MajorBookSection ReturnCurrentMajorBookSection { get {return _bkMajorBookSection[_bkMajorBookSection.Count - 1]; } }
+      public void AddChapter(string chapterName ) {
+         //Add it to the list
+         _bkMajorBookSection[_bkMajorBookSection.Count - 1].AddChapter(chapterName);
+      }
+
+      public void AddNewParagraph(string para ) {
+         BkChapter c = _bkMajorBookSection[_bkMajorBookSection.Count - 1].ReturnCurrentChapter;
+         c.AddNewParagraph(para);
+      }
+      public void AddToParagraph(string line ) {
+         BkChapter c = _bkMajorBookSection[_bkMajorBookSection.Count - 1].ReturnCurrentChapter;
+         c.AddToParagraph(line);
+
+      }
+
+      //***************************************************************************************************
    }
 
    /// <summary>
@@ -29,28 +46,49 @@ namespace CleanTheACIMFile {
       List<BkChapter> _bkChapter;
       public List<BkChapter> bkChapter { get { return _bkChapter; } }
       public string Title_MajorBookSection { get; set; }
-      public MajorBookSection() { _bkChapter = new List<BkChapter>(); Title_MajorBookSection = string.Empty; }
+      public MajorBookSection(string SectionName) { _bkChapter = new List<BkChapter>(); Title_MajorBookSection = SectionName; }
       public void AddChapter(string chapterName ) {
-         _bkChapter.Add(chapter); }
+         BkChapter b = new BkChapter(chapterName);
+         _bkChapter.Add(b);
+      }
+      public BkChapter ReturnCurrentChapter { get { return _bkChapter[_bkChapter.Count - 1]; } }
    }
 
    public class BkChapter {
       List<BkParagraph> _bkParagraph;
       public List<BkParagraph> bkParagraph { get { return _bkParagraph; } }
       public string ChapterTitle { get; set; }
-      public BkChapter() { _bkParagraph = new List<BkParagraph>(); ChapterTitle = string.Empty; }
-      public void AddParagraph( BkParagraph paragraph ) { _bkParagraph.Add(paragraph); }
+      public BkChapter(string chapterTitle) { _bkParagraph = new List<BkParagraph>(); ChapterTitle = chapterTitle; }
+      public void AddNewParagraph( string line ) {
+         BkParagraph p = new BkParagraph(line);
+         _bkParagraph.Add(p);
+      }
+      public void AddToParagraph(string line ) {
+         _bkParagraph[_bkParagraph.Count - 1].AddLineForNow(line);
+      }
+      public BkParagraph ReturnCurrentChapter { get { return _bkParagraph[_bkParagraph.Count - 1]; }      }
    }
 
    public class BkParagraph {
-      List<BkSentence> _bkSentence;
-      public List<BkSentence> bkSentence { get { return _bkSentence; }}
-      public BkParagraph() { _bkSentence = new List<BkSentence>(); }
-      public void AddSentence( BkSentence sentence) { _bkSentence.Add(sentence); }
+      List<BkLine> _bkSentence;
+      public List<BkLine> bkSentence { get { return _bkSentence; }}
+      public BkParagraph(string line) {
+         _bkSentence = new List<BkLine>();
+         BkLine b = new BkLine(line);
+         _bkSentence.Add(b);
+      }
+      public void AddLineForNow( string line) {
+         BkLine b = new BkLine(line);
+         _bkSentence.Add(b);
+      }
+      
       
    }
-   public class BkSentence {
+   public class BkLine {
       public string bkSentence { get; set; }
+      public BkLine(string line ) {
+         bkSentence = line;
+      }
    }
 
 

@@ -16,7 +16,7 @@ namespace CleanTheACIMFile {
 
 
       enum LineInfo { Page_Number,Chapter_Number,Chapter_Name,Chapter_section_Name,
-      First_Line_in_paragraph, Continues_Line, Major_Section_Name,Not_Sure}
+      First_Line_in_paragraph, Continues_Line, Major_Section_Name,Not_Sure,End_Of_File}
 
       public ReadInTextFile(string fullPath ) {
 
@@ -61,7 +61,10 @@ namespace CleanTheACIMFile {
 
             for(;;) {
 
-               LineInfo lineInfo = WhatLineIsThis(_file[index], index, out next, out data);
+               if(index >= _file.Length)
+                  break;
+
+               LineInfo lineInfo = WhatLineIsThis(_file[index], ref index, out next, out data);
 
                if(lineInfo == LineInfo.Chapter_Name) {
 
@@ -93,7 +96,7 @@ namespace CleanTheACIMFile {
 
 
       }
-      private LineInfo WhatLineIsThis(string line, int index, out LineInfo next, out object data  ) {
+      private LineInfo WhatLineIsThis(string line, ref int index, out LineInfo next, out object data  ) {
 
          data = null;
          next = LineInfo.Not_Sure;
@@ -102,14 +105,35 @@ namespace CleanTheACIMFile {
             Regex pullNumber = new Regex(@"\d+");
             Match m = pullNumber.Match(line);
             data = Convert.ToInt32(m.Value);
+
+            //for now just index 1
+            index++;
+
+
             return LineInfo.Page_Number;
+
          }
          else if(_chapterChecker.IsMatch(line)) {
             Regex pullNumber = new Regex(@"\d+");
             Match m = pullNumber.Match(line);
             data = Convert.ToInt32(m.Value);
             next = LineInfo.Chapter_section_Name;
+
+
+            //for now just index 1
+            index++;
+
+
             return LineInfo.Chapter_Number;
+         } else if(_startParaChecker.IsMatch(line)) {
+
+            //walk down the file and figure out whats next
+            for(;;) {
+
+               
+
+            }
+
          }
 
 
