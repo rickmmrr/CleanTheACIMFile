@@ -9,32 +9,35 @@ namespace CleanTheACIMFile {
    /// Book Object
    /// </summary>
    public class Book {
-      List<MajorBookSection> _bkMajorBookSection;
-      public List<MajorBookSection> bkMajorBookSection { get { return _bkMajorBookSection; } }
+      public List<BKMajorBookSection> ACIMMajorBookSection { get; set; }
       public string Title_Book { get; set; }
-      public Book() { _bkMajorBookSection = new List<MajorBookSection>(); Title_Book = string.Empty; }
+      public Book() { ACIMMajorBookSection = new List<BKMajorBookSection>(); Title_Book = string.Empty; }
+      public BKMajorBookSection ReturnCurrentMajorBookSection() { return ACIMMajorBookSection[ACIMMajorBookSection.Count - 1]; }
       // ***********************************************************************************************
       //************* This section encapsolates all functions from within the book class
 
       public void AddMajorBookSection( string title ) {
 
-         MajorBookSection m = new MajorBookSection(title);
-         _bkMajorBookSection.Add(m);
+         var m = new BKMajorBookSection();
+         m.Title_MajorBookSection = title;
+         ACIMMajorBookSection.Add(m);
       }
-      public void AddChapter(string chapterName ) {
+      public void AddChapter(string chapterNumber ) {
          //Add it to the list
-         _bkMajorBookSection[_bkMajorBookSection.Count - 1].AddChapter(chapterName);
+         ReturnCurrentMajorBookSection().AddChapter(chapterNumber);
+      }
+      public void AddChapterTitle(string title ) {
+         ReturnCurrentMajorBookSection().ReturnCurrentChapter().ChapterTitle = title;
       }
 
-      public void AddNewParagraph(string para ) {
-         BkChapter c = _bkMajorBookSection[_bkMajorBookSection.Count - 1].ReturnCurrentChapter;
-         c.AddNewParagraph(para);
+      public void AddNewChapterSection( string section ) {
+         ReturnCurrentMajorBookSection().ReturnCurrentChapter().AddSection(section);
+      }
+      public void AddParagraph(string line ) {
+         ReturnCurrentMajorBookSection().ReturnCurrentChapter().ReturnCurrentChapterSection().AddNewParagraph(line);
       }
       public void AddToParagraph(string line ) {
-         BkChapter c = _bkMajorBookSection[_bkMajorBookSection.Count - 1].ReturnCurrentChapter;
-         c.AddToParagraph(line);
-
-      }
+         ReturnCurrentMajorBookSection().ReturnCurrentChapter().ReturnCurrentChapterSection().ReturnCurrentParagraph().AddLineForNow(line);      }
 
       //***************************************************************************************************
    }
@@ -42,53 +45,53 @@ namespace CleanTheACIMFile {
    /// <summary>
    /// Book Section Object
    /// </summary>
-   public class MajorBookSection {
-      List<BkChapter> _bkChapter;
-      public List<BkChapter> bkChapter { get { return _bkChapter; } }
+   public class BKMajorBookSection {
+      public List<BKChapter> ACIMChapter { get; set; }
       public string Title_MajorBookSection { get; set; }
-      public MajorBookSection(string SectionName) { _bkChapter = new List<BkChapter>(); Title_MajorBookSection = SectionName; }
-      public void AddChapter(string chapterName ) {
-         BkChapter b = new BkChapter(chapterName);
-         _bkChapter.Add(b);
+      public BKMajorBookSection( ) { ACIMChapter = new List<BKChapter>(); }
+      public void AddChapter(string chapterNumber ) {
+         var b = new BKChapter();
+         b.ChapterNumber = chapterNumber;
+         ACIMChapter.Add(b);
       }
-      public BkChapter ReturnCurrentChapter { get { return _bkChapter[_bkChapter.Count - 1]; } }
+      public BKChapter ReturnCurrentChapter() { return ACIMChapter[ACIMChapter.Count - 1]; } 
    }
 
-   public class BkChapter {
-      List<BkParagraph> _bkParagraph;
-      public List<BkParagraph> bkParagraph { get { return _bkParagraph; } }
+   public class BKChapter {
+      public List<BKChapterSection> ACIMChapterSection { get; set; }
       public string ChapterTitle { get; set; }
-      public BkChapter(string chapterTitle) { _bkParagraph = new List<BkParagraph>(); ChapterTitle = chapterTitle; }
+      public string ChapterNumber { get; set; }
+      public BKChapter() { ACIMChapterSection = new List<BKChapterSection>();}
+      public void AddSection( string sectionTitle ) {
+         var s = new BKChapterSection();
+         s.SectionTitle = sectionTitle;
+         ACIMChapterSection.Add(s);
+      }
+      public BKChapterSection ReturnCurrentChapterSection() { return ACIMChapterSection[ACIMChapterSection.Count - 1]; }
+   }
+   public class BKChapterSection {
+      public List<BKParagraph> ACIMParagraph { get; set; }
+      public string SectionTitle { get; set; }
+      public string ChapterNumber { get; set; }
+      public BKChapterSection() { ACIMParagraph = new List<BKParagraph>();}
       public void AddNewParagraph( string line ) {
-         BkParagraph p = new BkParagraph(line);
-         _bkParagraph.Add(p);
+         var p = new BKParagraph();
+         p.AddLineForNow(line);
+         ACIMParagraph.Add(p);
       }
-      public void AddToParagraph(string line ) {
-         _bkParagraph[_bkParagraph.Count - 1].AddLineForNow(line);
-      }
-      public BkParagraph ReturnCurrentChapter { get { return _bkParagraph[_bkParagraph.Count - 1]; }      }
+      public BKParagraph ReturnCurrentParagraph() { return ACIMParagraph[ACIMParagraph.Count - 1]; }
    }
 
-   public class BkParagraph {
-      List<BkLine> _bkSentence;
-      public List<BkLine> bkSentence { get { return _bkSentence; }}
-      public BkParagraph(string line) {
-         _bkSentence = new List<BkLine>();
-         BkLine b = new BkLine(line);
-         _bkSentence.Add(b);
+   public class BKParagraph {
+      public List<string> ACIMParagraph { get; set; }
+      public BKParagraph() {
+         ACIMParagraph = new List<string>();
       }
       public void AddLineForNow( string line) {
-         BkLine b = new BkLine(line);
-         _bkSentence.Add(b);
+         ACIMParagraph.Add(line);
       }
       
       
-   }
-   public class BkLine {
-      public string bkSentence { get; set; }
-      public BkLine(string line ) {
-         bkSentence = line;
-      }
    }
 
 
