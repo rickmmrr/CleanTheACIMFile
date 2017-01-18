@@ -14,7 +14,7 @@ namespace CleanTheACIMFile {
       public Book() { ACIMMajorBookSection = new List<BKMajorBookSection>(); Title_Book = string.Empty; }
       public BKMajorBookSection ReturnCurrentMajorBookSection() { return ACIMMajorBookSection[ACIMMajorBookSection.Count - 1]; }
       // ***********************************************************************************************
-      //************* This section encapsolates all functions from within the book class
+      //************* This section encapselates all functions from within the book class
 
       public void AddMajorBookSection( string title ) {
 
@@ -22,15 +22,15 @@ namespace CleanTheACIMFile {
          m.Title_MajorBookSection = title;
          ACIMMajorBookSection.Add(m);
       }
-      public void AddChapter(string chapterNumber ) {
+      public void AddTextChapter(string chapterNumber ) {
          //Add it to the list
          ReturnCurrentMajorBookSection().AddChapter(chapterNumber);
       }
-      public void AddChapterTitle(string title ) {
+      public void AddTextChapterTitle(string title ) {
          ReturnCurrentMajorBookSection().ReturnCurrentChapter().ChapterTitle = title;
       }
 
-      public void AddNewChapterSection( string section ) {
+      public void AddNewTextChapterSection( string section ) {
          ReturnCurrentMajorBookSection().ReturnCurrentChapter().AddSection(section);
       }
       public void AddParagraph(string line ) {
@@ -39,6 +39,15 @@ namespace CleanTheACIMFile {
       public void AddToParagraph(string line ) {
          ReturnCurrentMajorBookSection().ReturnCurrentChapter().ReturnCurrentChapterSection().ReturnCurrentParagraph().AddLineForNow(line);      }
 
+      public void AddMajorSectionIntroductionTitle(string title) {
+         ReturnCurrentMajorBookSection().IntroductionTitle = title;
+      }
+      public void AddMajorSectionIntroductionParagraph(string line ) {
+         ReturnCurrentMajorBookSection().AddNewIntroductionParagraph(line);
+      }
+      public void AddToMajorSectionIntroductionParagraph(string line ) {
+         ReturnCurrentMajorBookSection().ReturnCurrentIntroductionParagraph().AddLineForNow(line);
+      }
       //***************************************************************************************************
    }
 
@@ -48,13 +57,27 @@ namespace CleanTheACIMFile {
    public class BKMajorBookSection {
       public List<BKChapter> ACIMChapter { get; set; }
       public string Title_MajorBookSection { get; set; }
-      public BKMajorBookSection( ) { ACIMChapter = new List<BKChapter>(); }
+      public BKMajorBookSection( ) { ACIMChapter = new List<BKChapter>(); IntroductionParagraphs = new List<BKParagraph>(); }
       public void AddChapter(string chapterNumber ) {
          var b = new BKChapter();
          b.ChapterNumber = chapterNumber;
          ACIMChapter.Add(b);
       }
       public BKChapter ReturnCurrentChapter() { return ACIMChapter[ACIMChapter.Count - 1]; } 
+
+      //Section for introduction
+      //***********************************************************************************
+      public string IntroductionTitle { get; set; }
+      public List<BKParagraph> IntroductionParagraphs { get; set; }
+      public void AddNewIntroductionParagraph( string line ) {
+         var p = new BKParagraph();
+         p.AddLineForNow(line);
+         IntroductionParagraphs.Add(p);
+      }
+      public BKParagraph ReturnCurrentIntroductionParagraph() { return IntroductionParagraphs[IntroductionParagraphs.Count - 1]; }
+
+      //*************************************************************************************
+
    }
 
    public class BKChapter {

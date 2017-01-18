@@ -112,13 +112,11 @@ namespace CleanTheACIMFile
 
 
 
-         ReadInTextFile t = new ReadInTextFile(_rootPath, "rawDataACIMText.txt");
+         ReadInTextFile t = new ReadInTextFile(_rootPath);
 
         
 
          MessageBox.Show("Done!");
-
-         this.Close();
 
       }
    }

@@ -9,152 +9,29 @@ using System.Xml.Serialization;
 
 namespace CleanTheACIMFile {
    public class ReadInTextFile {
-      string[] _file;
+
+      Book _book;
+      string[] _textFile;
+      string[] _lessonFile;
 
       Regex _pageChecker;
       Regex _chapterChecker;
       Regex _lessonChecker;
       Regex _startParaChecker;
       Regex _paragraphSectionTitleChecker;
+      Regex _skipPartIandPartII;
 
       // temparay
       Regex _stopAtLessonOne;
 
 
       enum LineInfo { Page_Number,Chapter_Number,Chapter_Title,Chapter_section_Name,
-      First_Line_in_paragraph, Continues_Line, Major_Section_Name,Not_Sure,End_Of_File,Empty_Line}
-
-
-      void ReadWorkbook( path, string file ) {
-
-      }
-
-      void ReadACIMText( string path, string file ) {
-         try {
+      First_Line_in_paragraph, Continues_Line, Major_Section_Name,Not_Sure,
+         End_Of_File,Empty_Line,Lesson,part_One_or_Part_Two}
 
 
 
-
-            Book book = new Book();
-
-
-
-
-
-
-            //read in the file
-            _file = System.IO.File.ReadAllLines(path + file);
-            int index = 0;
-
-            //first name in the file is the name of the book
-            //and first major section name
-            book.Title_Book = _file[index];
-            book.AddMajorBookSection(_file[index++] + " Text");
-
-
-
-            BKMajorBookSection currentMajorBookSection = book.ACIMMajorBookSection[book.ACIMMajorBookSection.Count - 1];
-            object data = null;
-            LineInfo nextFromRegex = LineInfo.Not_Sure;
-            LineInfo nextFromText = LineInfo.Not_Sure;
-
-
-            for(;;) {
-               //Break at end of file
-               if(index >= _file.Length)
-                  break;
-
-               //Temp
-               if(_stopAtLessonOne.IsMatch(_file[index]))
-                  break;
-
-
-               LineInfo lineInfo = WhatLineIsThis(_file[index], out nextFromRegex, out data);
-
-               if(lineInfo == LineInfo.Page_Number || lineInfo == LineInfo.Empty_Line) {
-                  index++;
-                  continue;
-               }
-
-               if(nextFromText == LineInfo.Chapter_Title) {
-                  book.AddChapterTitle(_file[index++]);
-                  nextFromText = LineInfo.Chapter_section_Name;
-
-               }
-               else if(nextFromText == LineInfo.Chapter_section_Name) {
-                  book.AddNewChapterSection(_file[index++]);
-                  nextFromText = LineInfo.First_Line_in_paragraph;
-
-               }
-               else if(nextFromText == LineInfo.First_Line_in_paragraph) {
-                  book.AddParagraph(_file[index++]);
-                  nextFromText = LineInfo.Not_Sure;
-
-               }
-               else if(lineInfo == LineInfo.Chapter_Number) {
-
-                  book.AddChapter(_file[index++]);
-                  nextFromText = LineInfo.Chapter_Title;
-
-               }
-               else if(lineInfo == LineInfo.Chapter_Title) {
-                  book.AddChapterTitle(_file[index++]);
-                  nextFromText = LineInfo.Chapter_section_Name;
-
-               }
-               else if(lineInfo == LineInfo.Chapter_section_Name) {
-                  book.AddNewChapterSection(_file[index++]);
-                  nextFromText = LineInfo.First_Line_in_paragraph;
-
-
-               }
-               else if(lineInfo == LineInfo.First_Line_in_paragraph) {
-
-                  book.AddParagraph(_file[index++]);
-               }
-               else if(lineInfo == LineInfo.Continues_Line) {
-                  book.AddToParagraph(_file[index++]);
-               }
-
-            }
-
-            //Now serialize the book
-            XmlSerializer xs = new XmlSerializer(typeof(Book));
-            Stream s = File.OpenWrite(path + @"XmlCheck.xml");
-            xs.Serialize(s, book);
-            s.Close();
-
-
-            //Deserialize
-
-            XmlSerializer deSel = new XmlSerializer(typeof(Book));
-            Stream ds = File.OpenRead(path + @"XmlCheck.xml");
-            Book book2 = (Book)deSel.Deserialize(ds);
-            ds.Close();
-
-            List<string> chapters = new List<string>();
-            foreach(BKChapter ch in book2.ACIMMajorBookSection[0].ACIMChapter) {
-               chapters.Add(ch.ChapterTitle);
-            }
-
-            string chapter1 = chapters[0];
-
-
-
-         }
-         catch(Exception ex) {
-
-            var theException = ex;
-            do {
-               System.Diagnostics.Debug.WriteLine(theException.Message);
-               theException = theException.InnerException;
-            } while(theException != null);
-
-
-         }
-      }
-
-      public ReadInTextFile(string path, string file ) {
+      public ReadInTextFile( string path) {
 
          //init regex expresions once
          //page
@@ -173,12 +50,230 @@ namespace CleanTheACIMFile {
          _paragraphSectionTitleChecker = new Regex(@"^[IVX]+\.\s");
 
          //temp stop at lesson 1
-         _stopAtLessonOne = new Regex(@"^LESSON\s1\\.");
+         _stopAtLessonOne = new Regex(@"^LESSON\s\d+\.");
 
+         _skipPartIandPartII = new Regex(@"^PART\s[I]+$");
+
+
+         _book = new Book();
+
+         ReadACIMText(path, "rawDataACIMText.txt");
+         ReadWorkbook(path, "rawDataWorkBook.txt");
+
+         //Now serialize the book
+         XmlSerializer xs = new XmlSerializer(typeof(Book));
+         Stream s = File.OpenWrite(path + @"XmlCheck.xml");
+         xs.Serialize(s, _book);
+         s.Close();
 
 
 
       }
+      void ReadWorkbook( string path, string file ) {
+
+         try {
+
+            _lessonFile = File.ReadAllLines(path + file);
+
+            int index = 0;
+            _book.AddMajorBookSection(_lessonFile[index++]);
+            _book.AddMajorSectionIntroductionTitle(_lessonFile[index++]);
+
+            object data = null;
+            LineInfo nextFromRegex = LineInfo.Not_Sure;
+            LineInfo nextFromText = LineInfo.Not_Sure;
+
+            for(;;) {
+
+               if(index >= _lessonFile.Length)
+                  break;
+
+               LineInfo lineInfo = WhatLineIsThis(_lessonFile[index], out nextFromRegex, out data);
+
+               if(lineInfo == LineInfo.Lesson)
+                  break;
+
+               if(lineInfo == LineInfo.First_Line_in_paragraph) {
+                  _book.AddMajorSectionIntroductionParagraph(_lessonFile[index++]);
+               }
+               else if(lineInfo == LineInfo.Continues_Line) {
+                  _book.AddToMajorSectionIntroductionParagraph(_lessonFile[index++]);
+               }
+               else {
+                  index++;
+               }
+
+
+            }
+
+            //we should now be at lesson 1
+            //read in all the lessons
+            for(;;) {
+
+               if(index >= _lessonFile.Length)
+                  break;
+
+               LineInfo lineInfo = WhatLineIsThis(_lessonFile[index], out nextFromRegex, out data);
+
+               if(lineInfo == LineInfo.Lesson) {
+                  _book.AddTextChapter(_lessonFile[index++]);
+               }
+               else if(lineInfo == LineInfo.Chapter_Title || nextFromRegex == LineInfo.Chapter_Title) {
+                  _book.AddTextChapterTitle(_lessonFile[index++]);
+               }
+               else if(lineInfo == LineInfo.First_Line_in_paragraph) {
+                  _book.AddParagraph(_lessonFile[index]);
+               }
+               else if(lineInfo == LineInfo.Continues_Line) {
+                  _book.AddToParagraph(_lessonFile[index++]);
+               }
+               else {
+                  index++;
+               }
+
+
+            }
+
+
+
+
+
+         }
+         catch(Exception ex) {
+            var theException = ex;
+            do {
+               System.Diagnostics.Debug.WriteLine(theException.Message);
+               theException = theException.InnerException;
+            } while(theException != null);
+
+         }
+      }
+      void ReadACIMText( string path, string file ) {
+
+         try {
+
+            //read in the file
+            _textFile = System.IO.File.ReadAllLines(path + file);
+            int index = 0;
+
+            //first name in the file is the name of the book
+            //and first major section name
+            _book.Title_Book = _textFile[index];
+            _book.AddMajorBookSection(_textFile[index++] + " Text");
+
+            //Next is the major section introduction title
+            _book.AddMajorSectionIntroductionTitle(_textFile[index++]);
+
+            //read in the introduction paragraphs
+            // break at chapter 1
+            object data = null;
+            LineInfo nextFromRegex = LineInfo.Not_Sure;
+            LineInfo nextFromText = LineInfo.Not_Sure;
+
+            for(;;) {
+               LineInfo lineInfo = WhatLineIsThis(_textFile[index], out nextFromRegex, out data);
+
+               if(lineInfo == LineInfo.Chapter_Number)
+                  break;
+
+               if(lineInfo == LineInfo.Page_Number || lineInfo == LineInfo.Empty_Line) {
+                  index++;
+                  continue;
+               }
+
+
+               if(lineInfo == LineInfo.First_Line_in_paragraph) {
+                  _book.AddMajorSectionIntroductionParagraph(_textFile[index++]);
+                  nextFromText = LineInfo.Not_Sure;
+
+               } else if(lineInfo == LineInfo.Continues_Line) {
+                  _book.AddToMajorSectionIntroductionParagraph(_textFile[index++]);
+               }
+
+            }
+
+
+
+            BKMajorBookSection currentMajorBookSection = _book.ACIMMajorBookSection[_book.ACIMMajorBookSection.Count - 1];
+
+
+            for(;;) {
+               //Break at end of file
+               if(index >= _textFile.Length)
+                  break;
+
+               //Temp
+               if(_stopAtLessonOne.IsMatch(_textFile[index]))
+                  break;
+
+
+               LineInfo lineInfo = WhatLineIsThis(_textFile[index], out nextFromRegex, out data);
+
+               if(lineInfo == LineInfo.Page_Number || lineInfo == LineInfo.Empty_Line) {
+                  index++;
+                  continue;
+               }
+
+               if(nextFromText == LineInfo.Chapter_Title) {
+                  _book.AddTextChapterTitle(_textFile[index++]);
+                  nextFromText = LineInfo.Chapter_section_Name;
+
+               }
+               else if(nextFromText == LineInfo.Chapter_section_Name) {
+                  _book.AddNewTextChapterSection(_textFile[index++]);
+                  nextFromText = LineInfo.First_Line_in_paragraph;
+
+               }
+               else if(nextFromText == LineInfo.First_Line_in_paragraph) {
+                  _book.AddParagraph(_textFile[index++]);
+                  nextFromText = LineInfo.Not_Sure;
+
+               }
+               else if(lineInfo == LineInfo.Chapter_Number) {
+
+                  _book.AddTextChapter(_textFile[index++]);
+                  nextFromText = LineInfo.Chapter_Title;
+
+               }
+               else if(lineInfo == LineInfo.Chapter_Title) {
+                  _book.AddTextChapterTitle(_textFile[index++]);
+                  nextFromText = LineInfo.Chapter_section_Name;
+
+               }
+               else if(lineInfo == LineInfo.Chapter_section_Name) {
+                  _book.AddNewTextChapterSection(_textFile[index++]);
+                  nextFromText = LineInfo.First_Line_in_paragraph;
+
+
+               }
+               else if(lineInfo == LineInfo.First_Line_in_paragraph) {
+
+                  _book.AddParagraph(_textFile[index++]);
+               }
+               else if(lineInfo == LineInfo.Continues_Line) {
+                  _book.AddToParagraph(_textFile[index++]);
+               }
+
+            }
+
+
+
+
+
+
+         }
+         catch(Exception ex) {
+
+            var theException = ex;
+            do {
+               System.Diagnostics.Debug.WriteLine(theException.Message);
+               theException = theException.InnerException;
+            } while(theException != null);
+
+
+         }
+      }
+      
       private LineInfo WhatLineIsThis(string line, out LineInfo next, out object data  ) {
 
          data = null;
@@ -222,7 +317,12 @@ namespace CleanTheACIMFile {
 
 
 
-         } else {
+         } else if(_lessonChecker.IsMatch(line)) {
+            next = LineInfo.Chapter_Title;
+            return LineInfo.Lesson;
+
+         }
+         else {
 
             // it has to be an empty line or part of a paragraph
             // or new paragraph section name
