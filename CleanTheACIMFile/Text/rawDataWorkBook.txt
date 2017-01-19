@@ -1,4 +1,5 @@
 WORKBOOK FOR STUDENTS
+PART I
 Introduction
 W-in.1. A theoretical foundation such as the text provides is necessary as a framework to make the
 exercises in this workbook meaningful. 2 Yet it is doing the exercises that will make the goal of the
@@ -44,7 +45,6 @@ need not even welcome them. 2 Some of them you may actively resist. 3 None of th
 decrease their efficacy. 4 But do not allow yourself to make exceptions in applying the ideas the
 workbook contains, and whatever your reactions to the ideas may be, use them. 5 Nothing more than
 that is required.
-PART I
 LESSON 1.
 Nothing I see in this room [on this street, from this window, in this place] means anything.
 W-1.1. Now look slowly around you, and practice applying this idea very specifically to whatever

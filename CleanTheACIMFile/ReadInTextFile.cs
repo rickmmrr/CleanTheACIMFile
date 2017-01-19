@@ -52,7 +52,7 @@ namespace CleanTheACIMFile {
          //temp stop at lesson 1
          _stopAtLessonOne = new Regex(@"^LESSON\s\d+\.");
 
-         _skipPartIandPartII = new Regex(@"^PART\s[I]+$");
+         _skipPartIandPartII = new Regex(@"PART\s+[I]+$");
 
 
          _book = new Book();
@@ -71,11 +71,12 @@ namespace CleanTheACIMFile {
       }
       void ReadWorkbook( string path, string file ) {
 
+         int index = 0;
          try {
 
             _lessonFile = File.ReadAllLines(path + file);
 
-            int index = 0;
+            
             _book.AddMajorBookSection(_lessonFile[index++]);
             _book.AddMajorSectionIntroductionTitle(_lessonFile[index++]);
 
@@ -105,32 +106,57 @@ namespace CleanTheACIMFile {
 
 
             }
+            nextFromRegex = LineInfo.Not_Sure;
+
+            LineInfo lastLineWas = LineInfo.Not_Sure;
 
             //we should now be at lesson 1
             //read in all the lessons
             for(;;) {
 
+
+
+
                if(index >= _lessonFile.Length)
                   break;
+               
+               
+               //what line is this will also return what line to process
+               //next 
+               if(nextFromRegex == LineInfo.Chapter_Title) {
+                  _book.AddTextChapterTitle(_lessonFile[index++]);
+                  nextFromRegex = LineInfo.Not_Sure;
+
+               }
+
+               if(lastLineWas == LineInfo.Chapter_Title && lineInfo == LineInfo.Continues_Line) {
+                  //Add to the lesson title
+               }
+
 
                LineInfo lineInfo = WhatLineIsThis(_lessonFile[index], out nextFromRegex, out data);
 
                if(lineInfo == LineInfo.Lesson) {
                   _book.AddTextChapter(_lessonFile[index++]);
                }
-               else if(lineInfo == LineInfo.Chapter_Title || nextFromRegex == LineInfo.Chapter_Title) {
+               else if(lineInfo == LineInfo.Chapter_Title) {
                   _book.AddTextChapterTitle(_lessonFile[index++]);
+
                }
                else if(lineInfo == LineInfo.First_Line_in_paragraph) {
-                  _book.AddParagraph(_lessonFile[index]);
+                  _book.AddParagraph(_lessonFile[index++]);
                }
                else if(lineInfo == LineInfo.Continues_Line) {
                   _book.AddToParagraph(_lessonFile[index++]);
+               }
+               else if(lineInfo == LineInfo.part_One_or_Part_Two) {
+                  index++;
                }
                else {
                   index++;
                }
 
+               lastLineWas = lineInfo;
 
             }
 
@@ -140,6 +166,8 @@ namespace CleanTheACIMFile {
 
          }
          catch(Exception ex) {
+
+            System.Diagnostics.Debug.WriteLine($"Index = {index}");
             var theException = ex;
             do {
                System.Diagnostics.Debug.WriteLine(theException.Message);
@@ -303,7 +331,7 @@ namespace CleanTheACIMFile {
          } else if(_startParaChecker.IsMatch(line)) {
 
             //get the paragraph heading
-            Regex pullHeading = new Regex(@"^.\s");
+            Regex pullHeading = new Regex(@"^[MTW]-.\.\d+\.");
             Match m = pullHeading.Match(line);
             data = m.Value.ToString();
             next = LineInfo.Not_Sure;
@@ -320,6 +348,11 @@ namespace CleanTheACIMFile {
          } else if(_lessonChecker.IsMatch(line)) {
             next = LineInfo.Chapter_Title;
             return LineInfo.Lesson;
+
+         }
+         else if(_skipPartIandPartII.IsMatch(line)) {
+            next = LineInfo.Chapter_Number;
+            return LineInfo.part_One_or_Part_Two;
 
          }
          else {
